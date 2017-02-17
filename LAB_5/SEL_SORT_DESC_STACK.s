@@ -1,0 +1,49 @@
+	AREA RESET ,  DATA, READONLY
+	EXPORT __Vectors
+__Vectors
+	DCD 0X10001000
+	DCD Reset_Handler
+	ALIGN
+	
+	AREA mycode, CODE, READONLY
+	ENTRY
+	EXPORT Reset_Handler
+
+Reset_Handler
+	LDR R11, =ARRAY
+	LDM R11, {R1 - R10}
+	STMDB SP!, {R1 - R10}
+
+	LDR R1, =0
+	LDR R6, =4
+	
+LOOP_1	CMP R1, #9
+	BHS DONE
+	MOV R3, R1
+	MUL R9, R3, R6
+	MOV R0, SP
+	ADD R0, R9
+	ADD R2, R0, #4
+	LDR R7, [R0]
+	MOV R8, R3
+	ADD R3, #1
+LOOP_2	LDR R4, [R2], #4
+	CMP R4, R7
+	MOVLO R7, R4
+	MOVLO R8, R3
+	ADD R3, #1
+	CMP R3, #9
+	BLS LOOP_2
+	LDR R2, [R0]
+	STR R7, [R0]
+	SUB R8, R1
+	MUL R8, R6
+	ADD R8, R0, R8
+	STR R2, [R8]
+	ADD R1, #1
+	B LOOP_1
+DONE	LDM SP!, {R1 - R10}
+STOP	B STOP
+
+ARRAY DCD 0x31, 0x42, 0x33, 0x54, 0x36, 0x12, 0x18, 0x22, 0x19, 0x21
+	END
