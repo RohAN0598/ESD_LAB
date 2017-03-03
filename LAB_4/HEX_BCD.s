@@ -13,7 +13,7 @@ Reset_Handler
 	LDR R0, =NUM1
 	LDR R0, [R0]
 	MOV R8, #0
-	MOV R7, #8
+	MOV R7, #2
 BACK	BL DIVIDE
 	CMP R0, #0
 	BNE BACK
@@ -22,7 +22,8 @@ R	CMP R7, #0
 	ROR R8, #4
 	SUB R7, #1
 	B R
-DONE	LDR R0, =BCD
+DONE	ROR R8, #24
+	LDR R0, =BCD
 	STR R8, [R0]
 STOP B STOP
 
