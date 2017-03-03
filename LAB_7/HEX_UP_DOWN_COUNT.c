@@ -7,60 +7,73 @@
 #define FOURTH_SEG 0xF9FFFFFF
 #define DISABLE_ALL 0xFA7FFFFF
 
-//unsigned long seg_list[4] = {FIRST_SEG, SECOND_SEG, THIRD_SEG, FOURTH_SEG};
-unsigned char seg_disp[10] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F,
-							  0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71};
-unsigned short int val_arr[4] = {0};
+unsigned long seg_list[4] = {FIRST_SEG, SECOND_SEG, THIRD_SEG, FOURTH_SEG};
+unsigned char seg_disp[16] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F, 0x77, 0x7C, 0x39, 0x5E, 0x79, 0x71};
+unsigned int val_arr[4] = {0}, twenty_count = 0x00;
+unsigned char one_sec_flg = 0x00;
+unsigned int x;
 
-void delay(int);
+void delay();
 void display();
 
 int main(){
-	unsigned int i=0x00, n, n1;
+	unsigned int i, n, n1;
 	SystemInit();
 	SystemCoreClockUpdate();
 	
 	//For display
-	LPC_PINCON->PINSEL &= 0xFF0000FF;
+	LPC_PINCON->PINSEL0 &= 0xFF0000FF;
 	LPC_GPIO0->FIODIRL |= 0x0FF0;
 	
 	//FOr segment selection
 	LPC_PINCON->PINSEL3 &= 0xF87FFFFF;
-	LPC_GPIO1->FIODIRU |= 0x0780;
+	LPC_GPIO1->FIODIRH |= 0x0780;
 	
 	//Input
-	LPC_PINCON->PINSEL4 &= 0xFDFFFFFFF;
-	LPC_GPIO2->FIODIR1 |= 0x00;
+	LPC_PINCON->PINSEL4 &= 0x00000000;
+	LPC_GPIO2->FIODIR |= 0x00;
 
 	while(1){
-		x = LPC_GPIO2->FIOPIN1 & 0x10;
-		if (x != 0x10)
-			i += 0x01;
-		else
-			i -= 0x01;
-		
-		n1 = i;
-		for(n=0; n<4; n++){
-			val_arr[3-n] = n1 & 0x000F;
-			n1 = n1>>8;
+		delay();
+		if(one_sec_flg == 0xFF)
+		{
+			x = LPC_GPIO2->FIOPIN & 0x01;
+			if (x == 0x01){
+				i += 0x1;
+			}
+			else{
+				i -= 0x1;
+			}
+			
+			one_sec_flg = 0x00;
+			n1 = i;
+			for(n=0; n<4; n++){
+				val_arr[n] = n1 & 0x0F;
+				n1=n1>>4;
+			}
 		}
 		display();
-		delay(1000);
 	}
-	return 0;
 }
 
-void delay(int i){
-	long j;
-	for(j=0; j<i*1000; j++);
-}
-
+void delay()
+ {
+	 unsigned int i;
+	 for (i=0;i<1000;i++);
+		if(twenty_count == 3000){     //multiplied by 500x2msec for 1 Sec 
+			one_sec_flg = 0xFF;
+			twenty_count = 0x00;			 
+		}
+		else twenty_count += 1;
+ }
+ 
 void display(){
 	int n;
+	long i;
 	for(n=0; n<4; n++){
-		LPC_GPIO1->FIOPIN = n<<23;
-		LPC_GPIO0->FIOPIN = seg_disp[val[n]]<<4;
-		delay(1);
+		LPC_GPIO1->FIOPIN = seg_list[n];
+		LPC_GPIO0->FIOPIN = seg_disp[val_arr[n]]<<4;
+		for(i=0; i<500; i++);
 		LPC_GPIO0->FIOCLRL = 0x0FF0;
 	}
 }
