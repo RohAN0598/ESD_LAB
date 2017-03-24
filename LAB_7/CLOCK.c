@@ -36,7 +36,7 @@ int main(){
 			if(min==60){
 				min = 0;
 				hr++;
-				if(hr > 12)	hr = 0;
+				if(hr == 24)	hr = 0;
 			}
 			n1 = min;
 			for(n=0; n<2; n++){
